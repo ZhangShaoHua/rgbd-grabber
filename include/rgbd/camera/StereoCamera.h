@@ -44,7 +44,7 @@ protected:
 
     cv::Mat _lcolor, _rcolor;
 
-    cv::StereoSGBM _sgbm;
+    cv::Ptr<cv::StereoSGBM> _sgbm;
 
     void setUpStereoParams();
 

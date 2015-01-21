@@ -12,8 +12,8 @@ UVCamera::UVCamera(size_t deviceNo, const cv::Size& size, double fps) :
         _capture(deviceNo),
         _size(size),
         _usleep(1000000 / fps) {
-    _capture.set(CV_CAP_PROP_FRAME_WIDTH, size.width);
-    _capture.set(CV_CAP_PROP_FRAME_HEIGHT, size.height);
+    _capture.set(cv::CAP_PROP_FRAME_WIDTH, size.width);
+    _capture.set(cv::CAP_PROP_FRAME_HEIGHT, size.height);
     if (!_capture.isOpened())
         std::exit(1);
 

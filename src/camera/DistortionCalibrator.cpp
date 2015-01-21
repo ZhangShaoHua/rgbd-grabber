@@ -13,7 +13,7 @@ DistortionCalibrator::DistortionCalibrator(std::shared_ptr<ColorCamera> camera,
         _camera(camera) {
     cv::Mat cameraMatrix;
     cv::Mat distCoeffs;
-    cv::FileStorage fs(intrinsics , CV_STORAGE_READ);
+    cv::FileStorage fs(intrinsics , cv::FileStorage::READ);
 
     if (fs.isOpened()) {
         if (!fs["M"].isNone() && !fs["D"].isNone()) {
@@ -54,7 +54,7 @@ void DistortionCalibrator::start() {
 
 void DistortionCalibrator::captureColor(cv::Mat& buffer) {
     _camera->captureColor(buffer);
-    cv::remap(buffer, buffer, _rectifyMaps[0], _rectifyMaps[1], CV_INTER_LINEAR);
+    cv::remap(buffer, buffer, _rectifyMaps[0], _rectifyMaps[1], cv::INTER_LINEAR);
 }
 
 void DistortionCalibrator::captureRawColor(cv::Mat& buffer) {

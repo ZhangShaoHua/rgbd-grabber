@@ -67,7 +67,7 @@ void StereoCamera::captureColorR(cv::Mat& buffer) {
 cv::Mat StereoCamera::reprojectImage() {
     cv::Mat disparity, xyz;
 
-    _sgbm(_lcolor, _rcolor, disparity);
+    _sgbm->compute(_lcolor, _rcolor, disparity);
     cv::reprojectImageTo3D(disparity, xyz, _Q, true);
 
     return xyz;
@@ -129,7 +129,7 @@ void StereoCamera::captureColoredPointCloud(ColoredPointCloud::Ptr buffer) {
 
 void StereoCamera::loadCameraParams(const std::string& intrinsics,
                                     const std::string& extrinsics) {
-    cv::FileStorage fs(intrinsics, CV_STORAGE_READ);
+    cv::FileStorage fs(intrinsics, cv::FileStorage::READ);
     cv::Mat M1, D1, M2, D2;
     cv::Mat R, T, R1, P1, R2, P2;
     cv::Rect roi1, roi2;
@@ -144,7 +144,7 @@ void StereoCamera::loadCameraParams(const std::string& intrinsics,
         std::exit(-1);
     }
 
-    fs.open(extrinsics, CV_STORAGE_READ);
+    fs.open(extrinsics, cv::FileStorage::READ);
 
     if (fs.isOpened()) {
         fs["R"] >> R;
@@ -165,17 +165,18 @@ void StereoCamera::loadCameraParams(const std::string& intrinsics,
 }
 
 void StereoCamera::setUpStereoParams() {
-    _sgbm.preFilterCap = 63;
-    _sgbm.SADWindowSize = 3;
-    _sgbm.P1 = 8 * 3 * _sgbm.SADWindowSize * _sgbm.SADWindowSize;
-    _sgbm.P2 = 32 * 3 * _sgbm.SADWindowSize * _sgbm.SADWindowSize;
-    _sgbm.minDisparity = 0;
-    _sgbm.numberOfDisparities = 64;
-    _sgbm.uniquenessRatio = 10;
-    _sgbm.speckleWindowSize = 100;
-    _sgbm.speckleRange = 32;
-    _sgbm.disp12MaxDiff = 1;
-    _sgbm.fullDP = false;
+    int preFilterCap = 63;
+    int SADWindowSize = 3;
+    int P1 = 8 * 3 *SADWindowSize * SADWindowSize;
+    int P2 = 32 * 3 * SADWindowSize * SADWindowSize;
+    int minDisparity = 0;
+    int numberOfDisparities = 64;
+    int uniquenessRatio = 10;
+    int speckleWindowSize = 100;
+    int speckleRange = 32;
+    int disp12MaxDiff = 1;
+    int mode=cv::StereoSGBM::MODE_SGBM;
+    _sgbm = cv::StereoSGBM::create(minDisparity, numberOfDisparities, SADWindowSize, P1, P2, disp12MaxDiff, uniquenessRatio, speckleWindowSize, speckleRange, mode);
 }
 
 }
