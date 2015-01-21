@@ -16,10 +16,9 @@ DEFINE_string(dir, "/tmp/calib", "calibration data directory");
 DEFINE_string(suffix, ".png", "file suffix");
 DEFINE_int32(size, 1, "number of files");
 
-void loadImages(cv::vector<cv::Mat> &colors, cv::vector<cv::Mat> &depths,
-                const int &fileNum) {
-    cv::namedWindow("color", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
-    cv::namedWindow("depth", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
+void loadImages(std::vector<cv::Mat> &colors, std::vector<cv::Mat> &depths, const int &fileNum) {
+    cv::namedWindow("color", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
+    cv::namedWindow("depth", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
 
     colors.clear();
     depths.clear();
@@ -47,8 +46,8 @@ void loadImages(cv::vector<cv::Mat> &colors, cv::vector<cv::Mat> &depths,
 }
 
 int findChessboards(
-        cv::vector<cv::Mat> &colors, cv::vector<cv::Mat> &depths,
-        cv::vector<cv::vector<cv::vector<cv::Point2f>>> &imagePoints,
+        std::vector<cv::Mat> &colors, std::vector<cv::Mat> &depths,
+        std::vector<std::vector<std::vector<cv::Point2f>>> &imagePoints,
         const cv::Size patternSize, const int &fileNum) {
     for (int i = 0; i < colors.size(); ++i) {
 
@@ -90,7 +89,7 @@ int findChessboards(
     return colors.size();
 }
 
-void setWorldPoints(cv::vector<cv::vector<cv::Point3f>> &worldPoints,
+void setWorldPoints(std::vector<std::vector<cv::Point3f>> &worldPoints,
                     const cv::Size patternSize, double squareSize,
                     const int &fileNum) {
     worldPoints.clear();
@@ -105,12 +104,12 @@ void setWorldPoints(cv::vector<cv::vector<cv::Point3f>> &worldPoints,
 }
 
 int main(int argc, char *argv[]) {
-    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::ParseCommandLineFlags(&argc, &argv, true);
 
-    cv::vector<cv::Mat> colors, depths;
+    std::vector<cv::Mat> colors, depths;
     const cv::Size patternSize(9, 6);
-    cv::vector<cv::vector<cv::Point3f>> worldPoints;
-    cv::vector<cv::vector<cv::vector<cv::Point2f>>> imagePoints(2);
+    std::vector<std::vector<cv::Point3f>> worldPoints;
+    std::vector<std::vector<std::vector<cv::Point2f>>> imagePoints(2);
     cv::TermCriteria criteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.001);
 
     for (size_t i = 0; i < 2; i++)
@@ -122,16 +121,16 @@ int main(int argc, char *argv[]) {
     setWorldPoints(worldPoints, patternSize, 24.0, FLAGS_size);
 
     std::cout << "calibrate stereo cameras" << std::endl;
-    cv::vector<cv::Mat> cameraMatrix(2);
-    cv::vector<cv::Mat> distCoeffs(2);
+    std::vector<cv::Mat> cameraMatrix(2);
+    std::vector<cv::Mat> distCoeffs(2);
     cameraMatrix[0] = cv::Mat::eye(3, 3, CV_64FC1);
     cameraMatrix[1] = cv::Mat::eye(3, 3, CV_64FC1);
     distCoeffs[0] = cv::Mat(8, 1, CV_64FC1);
     distCoeffs[1] = cv::Mat(8, 1, CV_64FC1);
     cv::Mat R, T, E, F;
 
-    cv::vector<cv::Mat> rvecs;
-    cv::vector<cv::Mat> tvecs;
+    std::vector<cv::Mat> rvecs;
+    std::vector<cv::Mat> tvecs;
     double rms1 = calibrateCamera(worldPoints, imagePoints[0], colors[0].size(),
                                   cameraMatrix[0], distCoeffs[0], rvecs, tvecs,
                                   CV_CALIB_FIX_K4 | CV_CALIB_FIX_K5);
@@ -152,7 +151,7 @@ int main(int argc, char *argv[]) {
 
     double err = 0;
     int npoints = 0;
-    cv::vector<cv::Vec3f> lines[2];
+    std::vector<cv::Vec3f> lines[2];
     for (int i = 0; i < FLAGS_size; i++) {
         int size = (int) imagePoints[0][i].size();
         cv::Mat imgpt[2];
@@ -252,7 +251,7 @@ int main(int argc, char *argv[]) {
             if (k == 0) {
                 cv::Mat img = colors[i].clone(), rimg, cimg;
                 cv::remap(img, rimg, rmap[k][0], rmap[k][1], CV_INTER_LINEAR);
-                cv::cvtColor(rimg, cimg, CV_GRAY2BGR);
+                cv::cvtColor(rimg, cimg, cv::COLOR_GRAY2BGR);
                 cv::Mat canvasPart = canvas(cv::Rect(w * k, 0, w, h));
                 cv::resize(cimg, canvasPart, canvasPart.size(), 0, 0, CV_INTER_AREA);
 
@@ -264,7 +263,7 @@ int main(int argc, char *argv[]) {
             } else {
                 cv::Mat img = depths[i].clone(), rimg, cimg;
                 cv::remap(img, rimg, rmap[k][0], rmap[k][1], CV_INTER_LINEAR);
-                cvtColor(rimg, cimg, CV_GRAY2BGR);
+                cvtColor(rimg, cimg, cv::COLOR_GRAY2BGR);
                 cv::Mat canvasPart = canvas(cv::Rect(w * k, 0, w, h));
                 cv::resize(cimg, canvasPart, canvasPart.size(), 0, 0, CV_INTER_AREA);
 

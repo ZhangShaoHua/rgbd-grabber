@@ -104,7 +104,7 @@ void DS325::captureColor(cv::Mat& buffer) {
     std::memcpy(buffer.data, _cdata.colorMap, _cdata.colorMap.size());
 
     if (_compression == COMPRESSION_TYPE_YUY2)
-        cv::cvtColor(buffer, buffer, CV_YUV2BGR_YUY2);
+        cv::cvtColor(buffer, buffer, cv::COLOR_YUV2BGR_YUY2);
 }
 
 void DS325::capturePointCloud(PointCloud::Ptr buffer) {

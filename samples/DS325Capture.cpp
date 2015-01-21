@@ -17,7 +17,7 @@ using namespace rgbd;
 DEFINE_int32(id, 0, "camera id");
 
 int main(int argc, char *argv[]) {
-    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::ParseCommandLineFlags(&argc, &argv, true);
 
     std::shared_ptr<DepthCamera> camera(new DS325(FLAGS_id, FRAME_FORMAT_WXGA_H));
     camera->start();
@@ -30,9 +30,9 @@ int main(int argc, char *argv[]) {
     ColoredPointCloud::Ptr cloud(new ColoredPointCloud(
             camera->depthSize().width, camera->depthSize().height));
 
-    cv::namedWindow("Depth", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
-    cv::namedWindow("Amplitude", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
-    cv::namedWindow("Color", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
+    cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
+    cv::namedWindow("Amplitude", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
+    cv::namedWindow("Color", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
 
     while (cv::waitKey(30) != 0x1b) {
         camera->captureDepth(depth);

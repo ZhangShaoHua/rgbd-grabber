@@ -20,7 +20,7 @@ DS325CalibWorker::~DS325CalibWorker() {
 void DS325CalibWorker::calibrateColor(cv::Mat& source, cv::Mat& result) {
     cv::Mat temp;
 
-    cv::remap(source, temp, _rectifyMaps[0][0], _rectifyMaps[0][1], CV_INTER_LINEAR);
+    cv::remap(source, temp, _rectifyMaps[0][0], _rectifyMaps[0][1], cv::INTER_LINEAR);
     cv::resize(temp(validROI[0]), result, _csize);
 }
 
@@ -39,7 +39,7 @@ void DS325CalibWorker::calibrateDepth(cv::Mat& source, cv::Mat& result) {
     cv::Mat cropped = scaled(cv::Rect(40, 43, 498, 498 / 4 * 3)); // TODO
     cv::resize(cropped, cropped, _csize);
     cv::Mat temp;
-    cv::remap(cropped, temp, _rectifyMaps[1][0], _rectifyMaps[1][1], CV_INTER_LINEAR);
+    cv::remap(cropped, temp, _rectifyMaps[1][0], _rectifyMaps[1][1], cv::INTER_LINEAR);
     cv::resize(temp(validROI[1]), result, _dsize);
 }
 
@@ -50,12 +50,12 @@ void DS325CalibWorker::calibrateAmplitude(cv::Mat& source, cv::Mat& result) {
     cv::Mat cropped = scaled(cv::Rect(40, 43, 498, 498 / 4 * 3)); // TODO
     cv::resize(cropped, cropped, _csize);
     cv::Mat temp;
-    cv::remap(cropped, temp, _rectifyMaps[1][0], _rectifyMaps[1][1], CV_INTER_LINEAR);
+    cv::remap(cropped, temp, _rectifyMaps[1][0], _rectifyMaps[1][1], cv::INTER_LINEAR);
     cv::resize(temp(validROI[1]), result, _dsize);
 }
 
 void DS325CalibWorker::loadParameters(const std::string& params) {
-    cv::FileStorage fs(params.c_str(), CV_STORAGE_READ);
+    cv::FileStorage fs(params.c_str(), cv::FileStorage::READ);
 
     if (fs.isOpened()) {
         fs["M1"] >> cameraMatrix[0];

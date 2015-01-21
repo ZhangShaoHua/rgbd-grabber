@@ -19,7 +19,7 @@ DEFINE_int32(height, 480, "image height");
 DEFINE_double(fps, 30.0, "fps");
 
 int main(int argc, char *argv[]) {
-    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::ParseCommandLineFlags(&argc, &argv, true);
 
     std::shared_ptr<ColorCamera> camera(new UVCamera(
             FLAGS_id, cv::Size(FLAGS_width, FLAGS_height), FLAGS_fps));
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 
     cv::Mat color = cv::Mat::zeros(camera->colorSize(), CV_8UC3);
 
-    cv::namedWindow("Color", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
+    cv::namedWindow("Color", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
 
     while (cv::waitKey(10) != 0x1b) {
         camera->captureColor(color);
