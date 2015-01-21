@@ -34,10 +34,10 @@ void findChessboards(cv::Mat& color, cv::Mat& amplitude) {
 
     if (cv::findChessboardCorners(
             color, patternSize, imagePoints[0],
-            CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE) &&
+            cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE) &&
         cv::findChessboardCorners(
                 scaled, patternSize, imagePoints[1],
-                CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE)) {
+                cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE)) {
         if (cv::waitKey(1) == 't') {
             std::stringstream cs, as;
             cs << FLAGS_dir << "/color_" << imageNum << FLAGS_suffix;
@@ -65,7 +65,7 @@ void findChessboards(cv::Mat& color, cv::Mat& amplitude) {
 }
 
 int main(int argc, char* argv[]) {
-    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::ParseCommandLineFlags(&argc, &argv, true);
 
     std::shared_ptr<rgbd::DepthCamera> camera(
             new rgbd::DS325(FLAGS_id, FRAME_FORMAT_VGA));
@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
     cv::Mat color(camera->colorSize(), CV_8UC3);
     cv::Mat amplitude(camera->depthSize(), CV_16UC1);
 
-    cv::namedWindow("color", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
-    cv::namedWindow("depth", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
+    cv::namedWindow("color", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
+    cv::namedWindow("depth", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
 
     while (cv::waitKey(10) != 0x1b) {
         camera->captureColor(color);

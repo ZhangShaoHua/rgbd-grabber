@@ -32,7 +32,10 @@ void loadImages(std::vector<cv::Mat> &colors, std::vector<cv::Mat> &depths, cons
         cv::Mat color = cv::imread(colorFile.str(), 0);
         colors.push_back(color);
 
-        cv::Mat depth = cv::imread(depthFile.str(), CV_LOAD_IMAGE_ANYDEPTH);
+        //This used to be
+        //cv::Mat depth = cv::imread(depthFile.str(), CV_LOAD_IMAGE_ANY_DEPTH);
+        // but this is no longer supported in OpenCV???
+        cv::Mat depth = cv::imread(depthFile.str(), CV_16SC1);
         depth.convertTo(depth, CV_8U, 255.0 / 1000.0);
         cv::resize(depth, depth, color.size());
         cv::Mat roi;
@@ -53,19 +56,17 @@ int findChessboards(
 
         if (cv::findChessboardCorners(
                 colors[i], patternSize, imagePoints[0][i],
-                CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE) &&
+                cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE) &&
             cv::findChessboardCorners(
                 depths[i], patternSize, imagePoints[1][i],
-                CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE)) {
+                    cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE)) {
 
             cv::cornerSubPix(
-                    colors[i], imagePoints[0][i],
-                    cv::Size(11, 11), cv::Size(-1, -1),
-                    cv::TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 30, 0.01));
+                    colors[i], imagePoints[0][i], cv::Size(11, 11), cv::Size(-1, -1),
+                    cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01));
             cv::cornerSubPix(
-                    depths[i], imagePoints[1][i],
-                    cv::Size(11, 11), cv::Size(-1, -1),
-                    cv::TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 30, 0.01));
+                    depths[i], imagePoints[1][i], cv::Size(11, 11), cv::Size(-1, -1),
+                    cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01));
 
             cv::drawChessboardCorners(colors[i], patternSize,
                                       (cv::Mat)(imagePoints[0][i]), true);
@@ -110,7 +111,7 @@ int main(int argc, char *argv[]) {
     const cv::Size patternSize(9, 6);
     std::vector<std::vector<cv::Point3f>> worldPoints;
     std::vector<std::vector<std::vector<cv::Point2f>>> imagePoints(2);
-    cv::TermCriteria criteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.001);
+    cv::TermCriteria criteria(cv::TermCriteria::COUNT | cv::TermCriteria::EPS, 20, 0.001);
 
     for (size_t i = 0; i < 2; i++)
         imagePoints[i].resize(FLAGS_size);
@@ -132,21 +133,20 @@ int main(int argc, char *argv[]) {
     std::vector<cv::Mat> rvecs;
     std::vector<cv::Mat> tvecs;
     double rms1 = calibrateCamera(worldPoints, imagePoints[0], colors[0].size(),
-                                  cameraMatrix[0], distCoeffs[0], rvecs, tvecs,
-                                  CV_CALIB_FIX_K4 | CV_CALIB_FIX_K5);
+                                  cameraMatrix[0], distCoeffs[0], rvecs, tvecs, cv::CALIB_FIX_K4 | cv::CALIB_FIX_K5);
     double rms2 = calibrateCamera(worldPoints, imagePoints[1], colors[0].size(),
-                                  cameraMatrix[1], distCoeffs[1], rvecs, tvecs,
-                                  CV_CALIB_FIX_K4 | CV_CALIB_FIX_K5);
+                                  cameraMatrix[1], distCoeffs[1], rvecs, tvecs, cv::CALIB_FIX_K4 | cv::CALIB_FIX_K5);
 
     double rms = stereoCalibrate(
             worldPoints, imagePoints[0], imagePoints[1], cameraMatrix[0],
             distCoeffs[0], cameraMatrix[1], distCoeffs[1], colors[0].size(),
-            R, T, E, F, cv::TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 100, 1e-5),
-            CV_CALIB_USE_INTRINSIC_GUESS +
-            //CV_CALIB_FIX_INTRINSIC +
-            CV_CALIB_FIX_PRINCIPAL_POINT + CV_CALIB_FIX_ASPECT_RATIO + CV_CALIB_ZERO_TANGENT_DIST +
-            //CV_CALIB_SAME_FOCAL_LENGTH +
-            CV_CALIB_RATIONAL_MODEL + CV_CALIB_FIX_K3 + CV_CALIB_FIX_K4 + CV_CALIB_FIX_K5);
+            R, T, E, F,  cv::CALIB_USE_INTRINSIC_GUESS +
+                    //CV_CALIB_FIX_INTRINSIC +
+                            cv::CALIB_FIX_PRINCIPAL_POINT + cv::CALIB_FIX_ASPECT_RATIO + cv::CALIB_ZERO_TANGENT_DIST +
+                    //CV_CALIB_SAME_FOCAL_LENGTH +
+                            cv::CALIB_RATIONAL_MODEL + cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5,
+            cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5)
+   );
     std::cout << "done with RMS error = " << rms << std::endl;
 
     double err = 0;
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
         validROIMat.at<int>(i, 3) = validROI[i].height;
     }
 
-    cv::FileStorage fs("stereo-params.xml", CV_STORAGE_WRITE);
+    cv::FileStorage fs("stereo-params.xml", cv::FileStorage::WRITE);
     if (fs.isOpened()) {
         fs << "M1" << cameraMatrix[0] << "D1" << distCoeffs[0] << "M2"
            << cameraMatrix[1] << "D2" << distCoeffs[1];
@@ -244,16 +244,16 @@ int main(int argc, char *argv[]) {
     h = cvRound(colors[0].size().height * sf);
     canvas.create(h, w * 2, CV_8UC3);
 
-    cv::namedWindow("Rectified", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
+    cv::namedWindow("Rectified", cv::WINDOW_AUTOSIZE | cv::WINDOW_FREERATIO);
 
     for (int i = 0; i < FLAGS_size; i++) {
         for (int k = 0; k < 2; k++) {
             if (k == 0) {
                 cv::Mat img = colors[i].clone(), rimg, cimg;
-                cv::remap(img, rimg, rmap[k][0], rmap[k][1], CV_INTER_LINEAR);
+                cv::remap(img, rimg, rmap[k][0], rmap[k][1], cv::INTER_LINEAR);
                 cv::cvtColor(rimg, cimg, cv::COLOR_GRAY2BGR);
                 cv::Mat canvasPart = canvas(cv::Rect(w * k, 0, w, h));
-                cv::resize(cimg, canvasPart, canvasPart.size(), 0, 0, CV_INTER_AREA);
+                cv::resize(cimg, canvasPart, canvasPart.size(), 0, 0, cv::INTER_AREA);
 
                 cv::Rect vroi(cvRound(validROI[k].x * sf),
                               cvRound(validROI[k].y * sf),
@@ -262,10 +262,10 @@ int main(int argc, char *argv[]) {
                 cv::rectangle(canvasPart, vroi, cv::Scalar(0, 0, 255), 3, 8);
             } else {
                 cv::Mat img = depths[i].clone(), rimg, cimg;
-                cv::remap(img, rimg, rmap[k][0], rmap[k][1], CV_INTER_LINEAR);
+                cv::remap(img, rimg, rmap[k][0], rmap[k][1], cv::INTER_LINEAR);
                 cvtColor(rimg, cimg, cv::COLOR_GRAY2BGR);
                 cv::Mat canvasPart = canvas(cv::Rect(w * k, 0, w, h));
-                cv::resize(cimg, canvasPart, canvasPart.size(), 0, 0, CV_INTER_AREA);
+                cv::resize(cimg, canvasPart, canvasPart.size(), 0, 0, cv::INTER_AREA);
 
                 cv::Rect vroi(cvRound(validROI[k].x * sf),
                               cvRound(validROI[k].y * sf),
